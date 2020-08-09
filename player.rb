@@ -10,10 +10,11 @@ class Player
   def guess_letter
     letter = ''
     loop do
-      puts 'Type the letter you want to guess'
-      letter = gets.chomp
-      break if letter.length == 1
+      puts '', 'Type the letter you want to guess'
+      letter = gets.chomp.downcase
+      break if letter.length == 1 && letter.match(/[a-z]/) || letter == 'save'
     end
+    letter
   end
 
   private

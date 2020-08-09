@@ -17,6 +17,6 @@ class Computer
       word = words.sample
       break if word.length >= 5 && word.length <= 12
     end
-    word
+    word.downcase
   end
 end
