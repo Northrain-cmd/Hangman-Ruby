@@ -3,29 +3,21 @@
 # manages player behavior
 class Player
   attr_accessor :name
-  def initialize
-    set_player_name
-  end
-
-  def guess_letter
+  def guess_letter(tried_letters)
     letter = ''
     loop do
-      puts '', 'Type the letter you want to guess'
+      input_info
       letter = gets.chomp.downcase
-      break if letter.length == 1 && letter.match(/[a-z]/) || letter == 'save'
+      break if letter.length == 1 && letter.match(/[a-z]/) || letter == 'save' || letter == 'load'
     end
+    puts 'You already tried this letter!' if tried_letters.include?(letter)
+    puts 'Invalid letter' unless letter.match(/[a-z]/)
     letter
   end
 
-  private
-
-  def set_player_name
-    input = ''
-    loop do
-      puts 'Please enter your name'
-      input = gets.chomp
-      break unless input.empty?
-    end
-    @name = input
+  def input_info
+    puts '', 'Type "save" to save current game',
+         'Type load to load a previous game',
+         'Type the letter you want to guess'
   end
 end
