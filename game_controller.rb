@@ -58,9 +58,12 @@ module SaveAndLoad
   end
 
   def choose_load_option
-    puts '[1] Load this game'.colorize(:blue), '[2] Delete this save'.colorize(:red)
-    option = gets.chomp
-    choose_load_option unless option.match(/[1,2]/)
+    option = ''
+    loop do
+      puts '[1] Load this game'.colorize(:blue), '[2] Delete this save'.colorize(:red)
+      option = gets.chomp
+      break if option.match(/[1,2]/)
+    end
     option
   end
 
