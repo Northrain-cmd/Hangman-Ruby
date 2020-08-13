@@ -73,7 +73,6 @@ module SaveAndLoad
 
   def update_state(state)
     @word = state['word']
-    p @word
     @word_arr = state['word_arr']
     @tried_letters = state['tried_letters']
     @wrong_guesses = state['wrong_guesses']
