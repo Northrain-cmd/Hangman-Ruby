@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'json'
+require 'colorize'
 require_relative 'computer'
 require_relative 'player'
 
@@ -8,12 +9,17 @@ require_relative 'player'
 module SaveAndLoad
   def load_game
     filenames = show_saves
-    index = ''
-    index = gets.chomp until index.match(/^\d+$/)
-    file = File.open(filenames[index.to_i - 1].to_s)
-    state = JSON.parse(file.read)
-    update_state(state)
-    file.close
+    return if filenames.empty?
+    index = select_save(filenames.length)
+    option = choose_load_option
+    if  option == '1'
+      file = File.open(filenames[index.to_i - 1].to_s)
+      state = JSON.parse(file.read)
+      update_state(state)
+      file.close
+    elsif  option == '2'
+      delete_save(filenames[index.to_i - 1].to_s)
+    end
   end
 
   def save_game
@@ -25,17 +31,41 @@ module SaveAndLoad
     }
 
     File.open("./saved_games/#{file_name}.json", 'w') { |f| f.write state.to_json }
-    puts 'Game saved successfully'
+    puts 'Game saved successfully'.colorize(:green)
   end
 
   private
 
   def show_saves
     filenames = Dir.glob('saved_games/*').select { |e| File.file? e }
+    puts 'No saved games yet'.colorize(:red) if filenames.empty?
     filenames.each_with_index do |filename, index|
-      puts "[#{index + 1}] #{filename}"
+      puts "[#{index + 1}] #{filename}".colorize(:magenta)
     end
     filenames
+  end
+
+  def select_save(total_files)
+    index = ''
+    loop do
+      puts 'Please choose the number of the save you want to load'
+      index = gets.chomp
+      break if index.match(/^\d+$/) &&
+               index.to_i.positive? &&
+               index.to_i <= total_files
+    end
+    index
+  end
+
+  def choose_load_option
+    puts '[1] Load this game'.colorize(:blue), '[2] Delete this save'.colorize(:red)
+    option = gets.chomp
+    choose_load_option unless option.match(/[1,2]/)
+    option
+  end
+
+  def delete_save(path)
+    File.delete(path) if File.exist?(path)
   end
 
   def update_state(state)
@@ -44,13 +74,13 @@ module SaveAndLoad
     @word_arr = state['word_arr']
     @tried_letters = state['tried_letters']
     @wrong_guesses = state['wrong_guesses']
-    puts 'Game loaded successfully'
+    puts 'Game loaded successfully'.colorize(:green)
   end
 end
 
 WELCOME_MESSAGE =
   <<~WELCOME
-                      Welcome to Hangman!
+                      Welcome to #{'Hangman'.colorize(:blue)}!
     You will have to guess a random word 5-12 characters long.
     Each turn you can guess one letter and it will be shown in all positions in the word.
     You can have 8 incorrect guesses before you lose.
@@ -70,7 +100,6 @@ class GameController
   def new_game
     puts WELCOME_MESSAGE
     init_game
-    p @word
     print_status
     game_cycle until @wrong_guesses.zero? || @game_over
     declare_winner
@@ -80,8 +109,8 @@ class GameController
   private
 
   def print_status
-    puts wrong_guesses.to_s + ' Wrong guesses left', @word_arr.join('  '),
-         '', 'Letters tried: ' + @tried_letters.join(', ')
+    puts wrong_guesses.to_s.colorize(:yellow) + ' Wrong guesses left', @word_arr.join('  '),
+         '', 'Letters tried: ' + @tried_letters.join(', ').colorize(:red)
   end
 
   def init_game
@@ -110,11 +139,11 @@ class GameController
 
   def declare_winner
     if game_over?
-      puts 'Congratulations!',
-           'You have guessed the word correctly'
+      puts 'Congratulations!'.colorize(:green),
+           'You have guessed the word correctly'.colorize(:green)
     else
-      puts 'Sorry, you lost this time',
-           'The word was: ' + @word
+      puts 'Sorry, you lost this time'.colorize(:red),
+           'The word was: ' + @word.colorize(:blue)
     end
   end
 
@@ -129,10 +158,10 @@ class GameController
   end
 
   def input_action(letter)
-    case letter
-    when 'save'
+    if letter == 'save'
       save_game
-    when 'load'
+      print_status
+    elsif letter == 'load'
       load_game
       print_status
     else
@@ -142,9 +171,12 @@ class GameController
 
   def check_input
     letter = ''
-    letter = @player.guess_letter(@tried_letters) while @tried_letters.include?(letter) &&
-                                                        letter != 'save' &&
-                                                        letter != 'load'
+    loop do
+      letter = @player.guess_letter(@tried_letters)
+      break unless @tried_letters.include?(letter) &&
+                   letter != 'save' &&
+                   letter != 'load'
+    end
     letter
   end
 

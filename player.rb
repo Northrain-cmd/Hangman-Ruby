@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'colorize'
+
 # manages player behavior
 class Player
   attr_accessor :name
@@ -10,14 +12,13 @@ class Player
       letter = gets.chomp.downcase
       break if letter.length == 1 && letter.match(/[a-z]/) || letter == 'save' || letter == 'load'
     end
-    puts 'You already tried this letter!' if tried_letters.include?(letter)
-    puts 'Invalid letter' unless letter.match(/[a-z]/)
+    puts 'You already tried this letter!'.colorize(:red) if tried_letters.include?(letter)
     letter
   end
 
   def input_info
-    puts '', 'Type "save" to save current game',
-         'Type load to load a previous game',
+    puts '', "Type #{'save'.colorize(:green)}  to save current game",
+         "Type #{'load'.colorize(:yellow)} to load a previous game",
          'Type the letter you want to guess'
   end
 end
